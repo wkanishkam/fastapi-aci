@@ -59,13 +59,23 @@ jobs:
     
     - name: Update Container Instance
       run: |
-        # Update the container instance with the new image
+        # Delete existing container group first
+        az container delete \
+          --resource-group rg-fastapi-aci \
+          --name fastapi-dev-container-group \
+          --yes || true
+        
+        # Wait for deletion to complete
+        sleep 10
+        
+        # Create new container instance with the FastAPI image
         az container create \
           --resource-group rg-fastapi-aci \
           --name fastapi-dev-container-group \
           --image ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest \
           --cpu 0.5 \
           --memory 1.5 \
+          --os-type Linux \
           --registry-login-server ${{ secrets.ACR_LOGIN_SERVER }} \
           --registry-username ${{ secrets.ACR_USERNAME }} \
           --registry-password ${{ secrets.ACR_PASSWORD }} \
@@ -73,8 +83,7 @@ jobs:
           --dns-name-label fastapi-dev-fastapi-aci \
           --ports 8000 \
           --environment-variables ENV=dev \
-          --restart-policy Always \
-          --no-wait
+          --restart-policy Always
     
     - name: Wait for container to be ready
       run: |
