@@ -37,6 +37,7 @@ Set up the following secrets in your GitHub repository:
 
 ```bash
 # For ACR authentication
+ACR_LOGIN_SERVER=<your-acr-login-server>  # e.g., fastapicrxxxx.azurecr.io
 ACR_USERNAME=<your-acr-username>
 ACR_PASSWORD=<your-acr-password>
 
@@ -77,7 +78,20 @@ curl http://localhost:8000/
 
 1. **Deploy Infrastructure**: Go to Actions → Infrastructure Management → Run workflow → Select "apply"
 
-2. **Build and Deploy Application**: Push changes to main branch or manually trigger the build workflow
+2. **Get ACR Details**: After infrastructure deployment, get the ACR login server and credentials:
+   ```bash
+   # Get outputs from Terraform
+   cd infra
+   terraform output acr_login_server
+   terraform output acr_name
+   
+   # Get ACR credentials
+   az acr credential show --name $(terraform output -raw acr_name)
+   ```
+
+3. **Set GitHub Secrets**: Add `ACR_LOGIN_SERVER`, `ACR_USERNAME`, and `ACR_PASSWORD` to your repository secrets
+
+4. **Build and Deploy Application**: Push changes to main branch or manually trigger the build workflow
 
 ### Infrastructure Management
 

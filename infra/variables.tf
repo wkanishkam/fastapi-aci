@@ -25,10 +25,10 @@ variable "prefix" {
 variable "acr_name" {
   description = "Name of the Azure Container Registry"
   type        = string
-  default     = "acrfastapi001"
+  default     = ""
   
   validation {
-    condition     = can(regex("^[a-zA-Z0-9]+$", var.acr_name))
+    condition     = can(regex("^[a-zA-Z0-9]+$", var.acr_name)) || var.acr_name == ""
     error_message = "ACR name must contain only alphanumeric characters."
   }
 }

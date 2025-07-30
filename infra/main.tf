@@ -4,11 +4,21 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~>3.0"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~>3.0"
+    }
   }
 }
 
 provider "azurerm" {
   features {}
+}
+
+resource "random_string" "acr_suffix" {
+  length  = 8
+  upper   = false
+  special = false
 }
 
 resource "azurerm_resource_group" "main" {
@@ -22,7 +32,7 @@ resource "azurerm_resource_group" "main" {
 }
 
 resource "azurerm_container_registry" "main" {
-  name                = var.acr_name
+  name                = var.acr_name != "" ? var.acr_name : "${var.prefix}acr${random_string.acr_suffix.result}"
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
   sku                 = "Basic"
