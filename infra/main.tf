@@ -76,9 +76,11 @@ resource "azurerm_container_group" "main" {
 
   container {
     name   = "fastapi-app"
-    image  = "${azurerm_container_registry.main.login_server}/fastapi-aci:latest"
+    image  = "python:3.11-slim"
     cpu    = "0.5"
     memory = "1.5"
+    
+    commands = ["python", "-c", "import http.server; import socketserver; PORT = 8000; Handler = http.server.SimpleHTTPRequestHandler; socketserver.TCPServer.allow_reuse_address = True; with socketserver.TCPServer(('', PORT), Handler) as httpd: print(f'Server running at port {PORT}'); httpd.serve_forever()"]
 
     ports {
       port     = 8000
@@ -88,6 +90,13 @@ resource "azurerm_container_group" "main" {
     environment_variables = {
       "ENV" = var.environment
     }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      container[0].image,
+      container[0].commands
+    ]
   }
 
   tags = {

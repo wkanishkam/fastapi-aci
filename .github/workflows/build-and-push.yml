@@ -46,3 +46,47 @@ jobs:
 
     - name: Output image digest
       run: echo "Image pushed with digest ${{ steps.build.outputs.digest }}"
+
+  update-container:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Update Container Instance
+      run: |
+        # Update the container instance with the new image
+        az container create \
+          --resource-group rg-fastapi-aci \
+          --name fastapi-dev-container-group \
+          --image ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest \
+          --cpu 0.5 \
+          --memory 1.5 \
+          --registry-login-server ${{ secrets.ACR_LOGIN_SERVER }} \
+          --registry-username ${{ secrets.ACR_USERNAME }} \
+          --registry-password ${{ secrets.ACR_PASSWORD }} \
+          --ip-address Public \
+          --dns-name-label fastapi-dev-fastapi-aci \
+          --ports 8000 \
+          --environment-variables ENV=dev \
+          --restart-policy Always \
+          --no-wait
+    
+    - name: Wait for container to be ready
+      run: |
+        echo "Waiting for container to be ready..."
+        sleep 30
+        
+        # Get container details
+        CONTAINER_IP=$(az container show --resource-group rg-fastapi-aci --name fastapi-dev-container-group --query 'ipAddress.ip' -o tsv)
+        CONTAINER_FQDN=$(az container show --resource-group rg-fastapi-aci --name fastapi-dev-container-group --query 'ipAddress.fqdn' -o tsv)
+        
+        echo "## Deployment Complete! 🚀" >> $GITHUB_STEP_SUMMARY
+        echo "- **Container IP:** $CONTAINER_IP" >> $GITHUB_STEP_SUMMARY  
+        echo "- **Container FQDN:** $CONTAINER_FQDN" >> $GITHUB_STEP_SUMMARY
+        echo "- **API URL:** http://$CONTAINER_FQDN:8000/" >> $GITHUB_STEP_SUMMARY
+        echo "- **Health Check:** http://$CONTAINER_FQDN:8000/health" >> $GITHUB_STEP_SUMMARY
