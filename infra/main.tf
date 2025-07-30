@@ -32,7 +32,7 @@ resource "azurerm_resource_group" "main" {
 }
 
 resource "azurerm_container_registry" "main" {
-  name                = var.acr_name != "" ? var.acr_name : "${var.prefix}acr${random_string.acr_suffix.result}"
+  name                = var.acr_name != "" ? var.acr_name : "${replace(var.prefix, "-", "")}acr${random_string.acr_suffix.result}"
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
   sku                 = "Basic"
