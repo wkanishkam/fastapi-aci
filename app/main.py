@@ -16,7 +16,7 @@ async def root():
     seconds = int(uptime_seconds % 60)
     
     return {
-        "message": f"FastAPI service is running in Azure Container Instance! Uptime: {hours}h {minutes}m {seconds}s",
+        "message": f"FastAPI service is running in Azure Container Instance! Uptime: {hours}h {minutes}m {seconds}s ",
         "uptime_seconds": round(uptime_seconds, 2),
         "start_time": datetime.fromtimestamp(start_time).isoformat(),
         "current_time": datetime.fromtimestamp(current_time).isoformat()
